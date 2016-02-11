@@ -1,0 +1,21 @@
+3DObstacleGame
+
+To run:
+
+make
+./3DObstacle
+
+This submission contains a fixed obstacle course with blocks moving up and down.
+The character adjusts its position according to the height/depth of the block it is on.
+
+The character is moved using the arrow keys and currently cannot move out of the play area.
+Two camera views have been implemented.
+Tower view which can be activated by pressing key S.
+Top view which is the default view and can be activated by pressing key A.
+
+The camera can be moved along the X, Y and Z axes.
+To control movement along X axis use keys K and L.
+To control movement along Y axis use keys R and T.
+To control movement along Z axis use keys O and P. (This gives a zoom effect)
+
+When appropriately used, one can rotate the camera using the above keys.
