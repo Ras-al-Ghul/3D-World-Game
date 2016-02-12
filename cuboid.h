@@ -251,7 +251,7 @@ void Cuboid::translateCuboid(float x,float y,float z){
 }
 
 void Cuboid::rotateCuboid(float angInDeg,float x,float y,float z){
-	rotate = glm::rotate(rotate,(float)(rotate,angInDeg*M_PI/180.0f), glm::vec3(x,y,z));
+	rotate = glm::rotate(rotate,(float)(angInDeg*M_PI/180.0f), glm::vec3(x,y,z));
 }
 
 void Cuboid::scaleCuboid(float x,float y,float z){

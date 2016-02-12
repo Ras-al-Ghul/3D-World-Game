@@ -15,10 +15,35 @@
 #include <FTGL/ftgl.h>
 #include <GLFW/glfw3.h>
 #include <SOIL/SOIL.h>
+#define EPSILON 0.01
 
 using namespace std;
 
-GLuint textureID1,textureID2,textureID3;//1water//2wall//3grass
+
+bool AEqual(float a, float b)
+{
+    return fabs(a - b) <= ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * EPSILON);
+}
+
+bool EEqual(float a, float b)
+{
+    return fabs(a - b) <= ( (fabs(a) > fabs(b) ? fabs(b) : fabs(a)) * EPSILON);
+}
+
+bool GreaterThan(float a, float b)
+{
+    return (a - b) > ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * EPSILON);
+}
+
+bool LessThan(float a, float b)
+{
+    return (b - a) > ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * EPSILON);
+}
+
+GLuint textureID1,textureID2,textureID3,textureID4,textureID5;//1water//2wall//3pant//4shirt//5skin
+
+bool isMoving = false;
+bool jump = false;
 
 float triangle_rot_dir = 1;
 float rectangle_rot_dir = 1;
@@ -382,6 +407,22 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
             	topviewcamval = 0;
             	towerview = -20;
             	break;
+            case GLFW_KEY_UP:
+                ups = true;
+                isMoving = false;
+                break;
+            case GLFW_KEY_DOWN:
+                downs = true;
+                isMoving = false;
+                break;
+            case GLFW_KEY_LEFT:
+                lefts = true;
+                isMoving = false;
+                break;
+            case GLFW_KEY_RIGHT:
+                rights = true;
+                isMoving = false;
+                break;
             default:
                 break;
         }
@@ -393,16 +434,23 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
                 break;
             case GLFW_KEY_UP:
             	ups = true;
+                isMoving = true;
             	break;
             case GLFW_KEY_DOWN:
             	downs = true;
+                isMoving = true;
             	break;
             case GLFW_KEY_LEFT:
             	lefts = true;
+                isMoving = true;
             	break;
             case GLFW_KEY_RIGHT:
             	rights = true;
+                isMoving = true;
             	break;
+            case GLFW_KEY_SPACE:
+                jump = true;
+                break;
             default:
                 break;
         }

@@ -87,48 +87,7 @@ void draw ()
   // Up - Up vector defines tilt of camera.  Don't change unless you are sure!!
   glm::vec3 up (0, 1, 0);
 
-  /*FOr top view
-  // Eye - Location of camera. Don't change unless you are sure!!
-  //glm::vec3 eye ( 5*cos(camera_rotation_angle*M_PI/180.0f), 0, 5*sin(camera_rotation_angle*M_PI/180.0f) );
-  glm::vec3 eye(0+topviewcamlateral, 0+topviewcamupdown, 20+topviewcamval);//-100
-  // Target - Where is the camera looking at.  Don't change unless you are sure!!
-  glm::vec3 target (0, 0, 0);//50 and 0
-  // Up - Up vector defines tilt of camera.  Don't change unless you are sure!!
-  glm::vec3 up (0, 1, 0);
-  */
-
-  /*
-  // Compute Camera matrix (view)
-  Matrices.view = glm::lookAt( eye, target, up ); // Rotating Camera for 3D
-  //  Don't change unless you are sure!!
-  //Matrices.view = glm::lookAt(glm::vec3(0,0,3), glm::vec3(0,0,0), glm::vec3(0,1,0)); // Fixed camera for 2D (ortho) in XY plane
-
-  // Compute ViewProject matrix as view/camera might not be changed for this frame (basic scenario)
-  //  Don't change unless you are sure!!
-  glm::mat4 VP = Matrices.projection * Matrices.view;
-
-  // Send our transformation to the currently bound shader, in the "MVP" uniform
-  // For each model you render, since the MVP will be different (at least the M part)
-  //  Don't change unless you are sure!!
-  glm::mat4 MVP;	// MVP = Projection * View * Model
-
-  // Load identity to model matrix
-  Matrices.model = glm::mat4(1.0f);
-
-  // Render your scene
-
-  glm::mat4 translateTriangle = glm::translate (glm::vec3(-2.0f, 0.0f, 0.0f)); // glTranslatef
-  glm::mat4 rotateTriangle = glm::rotate((float)(triangle_rotation*M_PI/180.0f), glm::vec3(0,0,1));  // rotate about vector (1,0,0)
-  glm::mat4 triangleTransform = translateTriangle * rotateTriangle;
-  Matrices.model *= triangleTransform; 
-  MVP = VP * Matrices.model; // MVP = p * V * M
-
-  //  Don't change unless you are sure!!
-  glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
-
-  // draw3DObject draws the VAO given to it using current MVP matrix
-  draw3DObject(triangle);
-  */
+  
   //Cuboid
   
   glUseProgram(textureProgramID);
@@ -140,14 +99,14 @@ void draw ()
   	if(Cuboids[k]->active == false)
   		continue;
   	if(Cuboids[k]->getCollapse() && !Cuboids[k]->getRestore() && Cuboids[k]->getUp() == 1){
-  		Cuboids[k]->translateCuboid(0.0f,0.0f,-1.0f);
-  		Meshes[int(k/10)][int(k%10)].zup -= (2*1);
+      Cuboids[k]->translateCuboid(0.0f,0.0f,-1.0f);
+  		Meshes[int(k/10)][int(k%10)].zup -= (/*2**/1);
   		Cuboids[k]->setRestore(true);
   		Cuboids[k]->setDepth(-1);
   	}
   	else if(Cuboids[k]->getCollapse() && !Cuboids[k]->getRestore() && Cuboids[k]->getUp() == 0){
   		Cuboids[k]->translateCuboid(0.0f,0.0f,1.0f);
-  		Meshes[int(k/10)][int(k%10)].zup += (2*1);
+  		Meshes[int(k/10)][int(k%10)].zup += (/*2**/1);
   		Cuboids[k]->setRestore(true);
   		Cuboids[k]->setDepth(1);
   	}
@@ -159,7 +118,7 @@ void draw ()
   	if(Cuboids[k]->getRestore() && Cuboids[k]->getUp() == 1){
   		if(Cuboids[k]->getInc() != 1000){
   			Cuboids[k]->translateCuboid(0.0f,0.0f,0.001f);
-  			Meshes[int(k/10)][int(k%10)].zup += (2*0.001);
+  			Meshes[int(k/10)][int(k%10)].zup += (/*2**/0.001);
   			Cuboids[k]->setInc(Cuboids[k]->getInc()+1);
   			Cuboids[k]->setDepth(Cuboids[k]->getDepth()+0.001f);
   		}
@@ -173,7 +132,7 @@ void draw ()
   	else if(Cuboids[k]->getRestore() && Cuboids[k]->getUp() == 0){
   		if(Cuboids[k]->getInc() != 1000){
   			Cuboids[k]->translateCuboid(0.0f,0.0f,-0.001f);
-  			Meshes[int(k/10)][int(k%10)].zup -= (2*0.001);
+  			Meshes[int(k/10)][int(k%10)].zup -= (/*2**/0.001);
   			Cuboids[k]->setInc(Cuboids[k]->getInc()+1);
   			Cuboids[k]->setDepth(Cuboids[k]->getDepth()-0.001f);
   		}
@@ -196,6 +155,16 @@ void draw ()
   	draw3DTexturedObject(Cuboids[k]->getCuboidVAO());
   }
   
+    /*
+    for(int i=0;i<10;i++){
+      for(int j=0;j<10;j++){
+        cout<<Meshes[i][j].zup<<" ";
+      }
+      cout<<endl;
+    }
+    cout<<endl;
+    */
+
   	base.setModelMatrixIdentity();
   	base.transformCuboidAndSetModel();
   	base.setMVPMatrix();
@@ -211,70 +180,87 @@ void draw ()
   	draw3DTexturedObject(base.getCuboidVAO());
 
   	//Player
-  	glUseProgram (programID);
+
+    player.z += Meshes[player.getboxx()][player.getboxy()].zup;
+    int oldx = player.getboxx(), oldy = player.getboxy();
+
+    cout<<player.z<<endl;
+
+  	glUseProgram (textureProgramID);
   	if(ups){
   		if(player.y + 0.25 < player.ypos){
-  			player.translateCuboid(0.0f,0.25f,0.0f);
-  			player.y+=0.25;
+        if(Meshes[player.getboxx()][player.getboxy()+1].zup <= player.z+0.25)        
+  			   player.handleKeyboard(0.0f,0.25f,0.0f);
+        else{
+          cout<<Meshes[player.getboxx()][player.getboxy()].zup<<" "<<player.z<<endl;
+          cout<<"ups "<<Meshes[player.getboxx()][player.getboxy()+1].zup<<endl;
+        }
   		}
   		ups = false;
   	}
   	else if(downs){
   		if(player.y - 0.25 > player.yneg){
-  			player.translateCuboid(0.0f,-0.25f,0.0f);
-  			player.y-=0.25;
+        if(Meshes[player.getboxx()][player.getboxy()-1].zup <= player.z+0.25)
+  			   player.handleKeyboard(0.0f,-0.25f,0.0f);
+        else{
+          cout<<Meshes[player.getboxx()][player.getboxy()].zup<<" "<<player.z<<endl;
+          cout<<"downs "<<Meshes[player.getboxx()][player.getboxy()-1].zup<<endl;
+        }
   		}
   		downs = false;
   	}
   	else if(lefts){
   		if(player.x - 0.25 > player.xneg){
-  			player.translateCuboid(-0.25f,0.0f,0.0f);
-  			player.x-=0.25;
+        if(Meshes[player.getboxx()-1][player.getboxy()].zup <= player.z+0.25)
+            player.handleKeyboard(-0.25f,0.0f,0.0f);
+          else{
+            cout<<Meshes[player.getboxx()][player.getboxy()].zup<<" "<<player.z<<endl;
+            cout<<"lefts "<<Meshes[player.getboxx()-1][player.getboxy()].zup<<endl;
+          }
   		}
   		lefts = false;
   	}
   	else if(rights){
   		if(player.x + 0.25 < player.xpos){
-  			player.translateCuboid(+0.25f,0.0f,0.0f);
-  			player.x+=0.25;
+        if(Meshes[player.getboxx()+1][player.getboxy()].zup <= player.z+0.25)
+      			player.handleKeyboard(0.25f,0.0f,0.0f);
+          else{
+            cout<<Meshes[player.getboxx()][player.getboxy()].zup<<" "<<player.z<<endl;
+            cout<<"rights "<<Meshes[player.getboxx()+1][player.getboxy()].zup<<endl;
+          }
   		}
   		rights = false;
   	}
 
-  	player.translateCuboid(0.0f,0.0f,Meshes[player.getboxx()][player.getboxy()].zup);
+    if(jump){
+      player.handleJump();
+    }
 
- 	  player.setModelMatrixIdentity();
-  	player.transformCuboidAndSetModel();
-  	player.setMVPMatrix();
 
-  	MVP = player.getMVPMatrix();
-  	glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
-  	draw3DObject(player.getCuboidVAO());
 
-  	player.translateCuboid(0.0f,0.0f,-(Meshes[player.getboxx()][player.getboxy()].zup));
+    player.rotate();
+
+    MVP = player.handleTorso(0.0f,0.0f,Meshes[player.getboxx()][player.getboxy()].zup);
+    glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
+    draw3DTexturedObject(player.torso.getCuboidVAO());
+    MVP = player.handleHead(0.0f,0.0f,Meshes[player.getboxx()][player.getboxy()].zup);
+    glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
+    draw3DTexturedObject(player.head.getCuboidVAO());
+    MVP = player.handleLeftLeg(0.0f,0.0f,Meshes[player.getboxx()][player.getboxy()].zup);
+    glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
+    draw3DTexturedObject(player.leftleg.getCuboidVAO());
+    MVP = player.handleRightLeg(0.0f,0.0f,Meshes[player.getboxx()][player.getboxy()].zup);
+    glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
+    draw3DTexturedObject(player.rightleg.getCuboidVAO());
+    MVP = player.handleLeftHand(0.0f,0.0f,Meshes[player.getboxx()][player.getboxy()].zup);
+    glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
+    draw3DTexturedObject(player.lefthand.getCuboidVAO());
+    MVP = player.handleRightHand(0.0f,0.0f,Meshes[player.getboxx()][player.getboxy()].zup);
+    glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
+    draw3DTexturedObject(player.righthand.getCuboidVAO());
+
+    player.z -= Meshes[oldx][oldy].zup;
   	//Player done
- 
-  // Pop matrix to undo transformations till last push matrix instead of recomputing model matrix
-  // glPopMatrix ();
-  /*
-  Matrices.model = glm::mat4(1.0f);
-
-  glm::mat4 translateRectangle = glm::translate (glm::vec3(2, 0, 0));        // glTranslatef
-  glm::mat4 rotateRectangle = glm::rotate((float)(rectangle_rotation*M_PI/180.0f), glm::vec3(0,0,1)); // rotate about vector (-1,1,1)
-  Matrices.model *= (translateRectangle * rotateRectangle);
-  MVP = VP * Matrices.model;
-  glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
-
-  // draw3DObject draws the VAO given to it using current MVP matrix
-  draw3DObject(rectangle);
-
-  // Increment angles
-  float increments = 1;
-
-  //camera_rotation_angle++; // Simulating camera rotation
-  triangle_rotation = triangle_rotation + increments*triangle_rot_dir*triangle_rot_status;
-  rectangle_rotation = rectangle_rotation + increments*rectangle_rot_dir*rectangle_rot_status;
-  */
 }
 
 /* Initialise glfw window, I/O callbacks and the renderer to use */
@@ -335,9 +321,11 @@ void initGL (GLFWwindow* window, int width, int height)
 
 	textureID1 = createTexture("water.png");
 	textureID2 = createTexture("cubes.png");
-	textureID3 = createTexture("grass.png");
+	textureID3 = createTexture("pant.png");
+  textureID4 = createTexture("shirt.png");  
+  textureID5 = createTexture("skin.png");
 
-	if(textureID1 == 0 || textureID2 == 0 || textureID3 == 0 )
+	if(textureID1 == 0 || textureID2 == 0 || textureID3 == 0 || textureID4 == 0 || textureID5 == 0 )
 		cout << "SOIL loading error: '" << SOIL_last_result() << "'" << endl;
 
 	// Create and compile our GLSL program from the texture shaders
