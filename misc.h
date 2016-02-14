@@ -38,6 +38,13 @@ GLuint textureID1,textureID2,textureID3,textureID4,textureID5,textureID6,texture
         textureID8,textureID9;//1water//2wall//3pant//4shirt//5skin//6flame//7gold//8danger//9goal
 
 int currentCamMode = 0; //0TowerView//1TopView//2AdventurerCam//3FollowCam//4HelicopterCam
+//eye
+float eyedefaultx = 0,eyedefaulty = -20,eyedefaultz = 20;
+float eyex = 0,eyey = 0,eyez = 0;
+//target
+float targetdefaultx = 0,targetdefaulty = 0,targetdefaultz = 0;
+float targetx = 0,targety = 0,targetz = 0;
+
 float steplengths = 0.20;//steplengths will be 0.20,0.25,0.30
 
 bool isMoving = false;
@@ -374,37 +381,98 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
     if (action == GLFW_RELEASE) {
         switch (key) {
             case GLFW_KEY_O:
-                rectangle_rot_status = !rectangle_rot_status;
-                topviewcamval++;
+                eyex++;
                 break;
             case GLFW_KEY_P:
-                triangle_rot_status = !triangle_rot_status;
-                topviewcamval--;
+                eyex--;
                 break;
             case GLFW_KEY_K:
-                topviewcamlateral++;
+                eyey++;
                 break;
             case GLFW_KEY_L:
-            	topviewcamlateral--;
+            	eyey--;
             	break;
-            case GLFW_KEY_R:
-                topviewcamupdown++;
+            case GLFW_KEY_N:
+                eyez++;
                 break;
-            case GLFW_KEY_T:
-            	topviewcamupdown--;
+            case GLFW_KEY_M:
+            	eyez--;
             	break;
-            case GLFW_KEY_A://topview
-            	topviewcamlateral = 0;
-            	topviewcamupdown = 0;
-            	topviewcamval = 0;
-            	towerview = 0;
+
+
+            case GLFW_KEY_U:
+                targetx++;
+                break;
+            case GLFW_KEY_I:
+                targetx--;
+                break;
+            case GLFW_KEY_H:
+                targety++;
+                break;
+            case GLFW_KEY_J:
+                targety--;
+                break;
+            case GLFW_KEY_V:
+                targetz++;
+                break;
+            case GLFW_KEY_B:
+                targetz--;
+                break;
+
+
+            case GLFW_KEY_0://towerview
+                currentCamMode = 0;
+                eyedefaultx = 0;
+                eyedefaulty = -20;
+                eyedefaultz = 20;
+
+                targetdefaultx = 0;
+                targetdefaulty = 0;
+                targetdefaultz = 0;
+
+                eyex = 0,eyey = 0,eyez = 0;
+                targetx = 0,targety = 0, targetz = 0;
+                break;
+            case GLFW_KEY_1://topview
+                currentCamMode = 1;
+                eyedefaultx = 0;
+                eyedefaulty = 0;
+                eyedefaultz = 20;
+
+                targetdefaultx = 0;
+                targetdefaulty = 0;
+                targetdefaultz = 0;
+
+                eyex = 0,eyey = 0,eyez = 0;
+                targetx = 0,targety = 0, targetz = 0;
             	break;
-            case GLFW_KEY_W:
-            	topviewcamlateral = 0;
-            	topviewcamupdown = 0;
-            	topviewcamval = 0;
-            	towerview = -20;
-            	break;
+            case GLFW_KEY_2://adventurercam
+                currentCamMode = 2;
+                eyedefaultx = 0;
+                eyedefaulty = -20;
+                eyedefaultz = 20;
+
+                targetdefaultx = 0;
+                targetdefaulty = 0;
+                targetdefaultz = 0;
+
+                eyex = 0,eyey = 0,eyez = 0;
+                targetx = 0,targety = 0, targetz = 0;
+                break;
+            case GLFW_KEY_3://followcam
+                currentCamMode = 3;
+                eyedefaultx = 0;
+                eyedefaulty = -20;
+                eyedefaultz = 20;
+
+                targetdefaultx = 0;
+                targetdefaulty = 0;
+                targetdefaultz = 0;
+
+                eyex = 0,eyey = 0,eyez = 0;
+                targetx = 0,targety = 0, targetz = 0;
+                break;
+
             case GLFW_KEY_F:
                 if(steplengths + 0.05 <= 0.3)
                     steplengths += 0.05;
@@ -413,6 +481,8 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
                 if(steplengths - 0.05 >= 0.2)
                     steplengths -= 0.05;
                 break;
+
+
             case GLFW_KEY_UP:
                 ups = true;
                 isMoving = false;
@@ -475,26 +545,46 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
             case GLFW_KEY_RIGHT:
             	rights = true;
             	break;
+            
+
             case GLFW_KEY_O:
-                rectangle_rot_status = !rectangle_rot_status;
-                topviewcamval++;
+                eyex++;
                 break;
             case GLFW_KEY_P:
-                triangle_rot_status = !triangle_rot_status;
-                topviewcamval--;
+                eyex--;
                 break;
             case GLFW_KEY_K:
-                topviewcamlateral++;
+                eyey++;
                 break;
             case GLFW_KEY_L:
-            	topviewcamlateral--;
-            	break;
-            case GLFW_KEY_R:
-                topviewcamupdown++;
+                eyey--;
                 break;
-            case GLFW_KEY_T:
-            	topviewcamupdown--;
-            	break;
+            case GLFW_KEY_N:
+                eyez++;
+                break;
+            case GLFW_KEY_M:
+                eyez--;
+                break;
+
+
+            case GLFW_KEY_U:
+                targetx++;
+                break;
+            case GLFW_KEY_I:
+                targetx--;
+                break;
+            case GLFW_KEY_H:
+                targety++;
+                break;
+            case GLFW_KEY_J:
+                targety--;
+                break;
+            case GLFW_KEY_V:
+                targetz++;
+                break;
+            case GLFW_KEY_B:
+                targetz--;
+                break;
             default:
                 break;
         }

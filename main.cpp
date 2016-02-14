@@ -117,9 +117,14 @@ void draw ()
 
   // Eye - Location of camera. Don't change unless you are sure!!
   //glm::vec3 eye ( 5*cos(camera_rotation_angle*M_PI/180.0f), 0, 5*sin(camera_rotation_angle*M_PI/180.0f) );
-  glm::vec3 eye(0+topviewcamlateral, towerview+topviewcamupdown, 20+topviewcamval);//-100
+
+  glm::vec3 eye(eyedefaultx+eyex, eyedefaulty+eyey, eyedefaultz+eyez);//-100  
+
+  //glm::vec3 eye(0+topviewcamlateral, towerview+topviewcamupdown, 20+topviewcamval);//-100
   // Target - Where is the camera looking at.  Don't change unless you are sure!!
-  glm::vec3 target (0, 0, 0);//50 and 0
+  glm::vec3 target(targetdefaultx+targetx, targetdefaulty+targety, targetdefaultz+targetz);
+
+  //glm::vec3 target (0, 0, 0);//50 and 0
   // Up - Up vector defines tilt of camera.  Don't change unless you are sure!!
   glm::vec3 up (0, 1, 0);
 
@@ -404,6 +409,36 @@ void draw ()
     }
 
     player.rotate();
+
+    cout<<player.x<<" "<<player.y<<" "<<player.z<<endl;
+
+    if(currentCamMode == 2){
+      eyedefaultx = player.x;
+      eyedefaulty = player.y;
+      eyedefaultz = player.z*2;
+
+      //cout<<"eye"<<eyedefaultx+eyex<<" "<<eyedefaulty+eyey<<" "<<eyedefaultz+eyez<<endl;
+
+      targetdefaultx = eyedefaultx+eyex;
+      targetdefaulty = eyedefaulty+eyey+10;
+      targetdefaultz = 0;
+
+      //cout<<"target"<<targetdefaultx+targetx<<" "<<targetdefaulty+targety<<" "<<targetdefaultz+targetz<<endl;
+    }
+
+    if(currentCamMode == 3){
+      eyedefaultx = player.x;
+      eyedefaulty = player.y - 2;
+      eyedefaultz = player.z*2.5;
+
+      //cout<<"eye"<<eyedefaultx+eyex<<" "<<eyedefaulty+eyey<<" "<<eyedefaultz+eyez<<endl;
+
+      targetdefaultx = eyedefaultx+eyex;
+      targetdefaulty = eyedefaulty+eyey+10;
+      targetdefaultz = 0;
+
+      //cout<<"target"<<targetdefaultx+targetx<<" "<<targetdefaulty+targety<<" "<<targetdefaultz+targetz<<endl;
+    }
 
     MVP = player.handleTorso(0.0f,0.0f,Meshes[player.getboxx()][player.getboxy()].zup);
     glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
