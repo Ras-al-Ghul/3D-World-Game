@@ -1,9 +1,12 @@
 #include <utility>
 #include <cstddef>
+#include <string>
 #include "player.h"
 
 #include <SFML/Audio.hpp>
 sf::Sound collision,gold,fall;
+
+char name[100];
 
 bool inits = true,lifeminus = false,isDangerSet = false;
 VAO *triangle, *rectangle;
@@ -305,6 +308,8 @@ void draw ()
   	glUniform1i(glGetUniformLocation(textureProgramID, "texSampler"), 0);
 
   	draw3DTexturedObject(Cuboids[k]->getCuboidVAO());
+
+
   }
   
     /*
@@ -364,7 +369,7 @@ void draw ()
       }
     }
 
-    cout<<player.score<<" "<<player.lives<<endl;
+    //cout<<player.score<<" "<<player.lives<<endl;
 
     //Obstacles done
 
@@ -577,6 +582,67 @@ void draw ()
       cout<<"Game Over :) Your score is "<<player.score<<endl;
       exit(0);
     }
+
+
+
+    // Render font on screen
+	static int fontScale = 0;
+	float fontScaleValue = 0.95;//0.75 + 0.25*sinf(fontScale*M_PI/180.0f);
+	glm::vec3 fontColor = getRGBfromHue (fontScale);
+
+	// Use font Shaders for next part of code
+	glUseProgram(fontProgramID);
+
+	// Transform the text
+	Matrices.model = glm::mat4(1.0f);
+
+	glm::mat4 translateText;
+	glm::mat4 rotateText;
+	glm::mat4 scaleText;
+
+	if(currentCamMode == 0){
+		translateText = glm::translate(glm::vec3(-20,50,5));
+		rotateText = glm::rotate((float)(90*M_PI/180.0f),glm::vec3(1,0,0));
+		scaleText = glm::scale(glm::vec3(5,5,5));
+	}
+	else if(currentCamMode == 1){
+		translateText = glm::translate(glm::vec3(-8,13,5));
+		scaleText = glm::scale(glm::vec3(2,2,2));
+	}
+	else if(currentCamMode == 2){
+		translateText = glm::translate(glm::vec3(player.x-4,player.y+20,8));
+		rotateText = glm::rotate((float)(90*M_PI/180.0f),glm::vec3(1,0,0));
+		scaleText = glm::scale(glm::vec3(2,2,2));
+	}
+	else if(currentCamMode == 3){
+		translateText = glm::translate(glm::vec3(player.x-4,player.y+20,8));
+		rotateText = glm::rotate((float)(90*M_PI/180.0f),glm::vec3(1,0,0));
+		scaleText = glm::scale(glm::vec3(2,2,2));
+	}
+	else{
+		translateText = glm::translate(glm::vec3(-10,20,5));
+		//rotateText = glm::rotate((float)(90*M_PI/180.0f),glm::vec3(1,0,0));
+		scaleText = glm::scale(glm::vec3(3,3,3));
+	}
+
+	
+	translateText = glm::translate(translateText,glm::vec3(eyex,eyey,eyez));
+	
+	Matrices.model *= (translateText * scaleText*rotateText);
+	MVP = Matrices.projection * Matrices.view * Matrices.model;
+	// send font's MVP and font color to fond shaders
+	glUniformMatrix4fv(GL3Font.fontMatrixID, 1, GL_FALSE, &MVP[0][0]);
+	glUniform3fv(GL3Font.fontColorID, 1, &fontColor[0]);
+
+	char sc[100];
+	sprintf(sc,"%s Score %d Lives %d",name,player.score,player.lives);
+
+	// Render font
+	GL3Font.font->Render(sc);
+
+
+	// font size and color changes
+	fontScale = (fontScale + 1) % 360;
 }
 
 /* Initialise glfw window, I/O callbacks and the renderer to use */
@@ -595,7 +661,7 @@ GLFWwindow* initGLFW (int width, int height)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    window = glfwCreateWindow(width, height, "Sample OpenGL 3.3 Application", NULL, NULL);
+    window = glfwCreateWindow(width, height, "3D Obstacle Game", NULL, NULL);
 
     if (!window) {
         glfwTerminate();
@@ -684,6 +750,34 @@ void initGL (GLFWwindow* window, int width, int height)
 	glEnable (GL_DEPTH_TEST);
 	glDepthFunc (GL_LEQUAL);
 
+
+	// Initialise FTGL stuff
+	const char* fontfile = "arial.ttf";
+	GL3Font.font = new FTExtrudeFont(fontfile); // 3D extrude style rendering
+
+	if(GL3Font.font->Error())
+	{
+		cout << "Error: Could not load font `" << fontfile << "'" << endl;
+		glfwTerminate();
+		exit(EXIT_FAILURE);
+	}
+
+	// Create and compile our GLSL program from the font shaders
+	fontProgramID = LoadShaders( "fontrender.vert", "fontrender.frag" );
+	GLint fontVertexCoordAttrib, fontVertexNormalAttrib, fontVertexOffsetUniform;
+	fontVertexCoordAttrib = glGetAttribLocation(fontProgramID, "vertexPosition");
+	fontVertexNormalAttrib = glGetAttribLocation(fontProgramID, "vertexNormal");
+	fontVertexOffsetUniform = glGetUniformLocation(fontProgramID, "pen");
+	GL3Font.fontMatrixID = glGetUniformLocation(fontProgramID, "MVP");
+	GL3Font.fontColorID = glGetUniformLocation(fontProgramID, "fontColor");
+
+	GL3Font.font->ShaderLocations(fontVertexCoordAttrib, fontVertexNormalAttrib, fontVertexOffsetUniform);
+	GL3Font.font->FaceSize(1);
+	GL3Font.font->Depth(0);
+	GL3Font.font->Outset(0, 0);
+	GL3Font.font->CharMap(ft_encoding_unicode);
+
+
     cout << "VENDOR: " << glGetString(GL_VENDOR) << endl;
     cout << "RENDERER: " << glGetString(GL_RENDERER) << endl;
     cout << "VERSION: " << glGetString(GL_VERSION) << endl;
@@ -695,19 +789,21 @@ int main (int argc, char** argv)
 	srand(time(NULL));
 	int width = 1024;
 	int height = 768;
+cout<<"Enter name"<<endl;
+scanf("%s",name);
 
   sf::SoundBuffer buffer1;
-  if(!buffer1.loadFromFile("../collision.wav"))
+  if(!buffer1.loadFromFile("collision.wav"))
       return -1;
   collision.setBuffer(buffer1);
 
   sf::SoundBuffer buffer2;
-  if(!buffer2.loadFromFile("../gold.wav"))
+  if(!buffer2.loadFromFile("gold.wav"))
       return -1;
   gold.setBuffer(buffer2);
 
   sf::SoundBuffer buffer3;
-  if(!buffer3.loadFromFile("../fall.wav"))
+  if(!buffer3.loadFromFile("fall.wav"))
       return -1;
   fall.setBuffer(buffer3);
 
