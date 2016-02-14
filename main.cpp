@@ -2,6 +2,10 @@
 #include <cstddef>
 #include "player.h"
 
+#include <SFML/Audio.hpp>
+sf::Sound collision,gold,fall;
+
+bool inits = true,lifeminus = false,isDangerSet = false;
 VAO *triangle, *rectangle;
 
 vector<Cuboid*> Cuboids;
@@ -44,7 +48,7 @@ void makeObstacles(){
 
 void makeGolds(){
   int p = 0;
-  for(int i=0;i<(rand()%2+2);i++){
+  for(int i=0;i<(rand()%2+6);i++){
     curObstacle = new Obstacle(true);
     golds.push_back(curObstacle);
 
@@ -64,7 +68,7 @@ void makeHundredCuboids(){
         if(i == 0 && j == 0)
           Cuboids[p]->isGoal = true;
 
-			  if(rand()%3 == 1 && !Cuboids[p]->isGoal){
+			  if(rand()%4 == 1 && !Cuboids[p]->isGoal){
 			  	Cuboids[p]->active = false;
 			  }
 			  Cuboids[p]->setFillMode(GL_FILL);
@@ -137,6 +141,7 @@ void draw ()
   
   for(unsigned int k=0 ; k < 100; k++){
   	//Cuboids[k]->setViewMatrix(eye,target,up);
+
   	if(Cuboids[k]->active == false)
   		continue;
   	if(Cuboids[k]->getCollapse() && !Cuboids[k]->getRestore() && Cuboids[k]->getUp() == 1){
@@ -181,6 +186,7 @@ void draw ()
 
           Cuboids[k]->isDanger = true;
           Cuboids[k]->active = true;
+          Cuboids[k]->isYellow = true;
 
           Cuboids[k]->setFillMode(GL_FILL);
           //Cuboids[0]->callCreate3DObject();
@@ -332,8 +338,15 @@ void draw ()
       glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
       draw3DTexturedObject(obstacles[i]->cube.getCuboidVAO());
 
-      if(LessThan(abs(player.x - obstacles[i]->x), 0.2) && LessThan(abs(player.y - obstacles[i]->y), 0.2))
-        cout<<"dead"<<endl;
+      if(LessThan(abs(player.x - obstacles[i]->x), 0.2) && LessThan(abs(player.y - obstacles[i]->y), 0.2)){
+        if(!lifeminus){
+          player.lives--;
+          player.score -= 10;
+          lifeminus = true;
+          collision.play();
+        }
+      }
+        
     }
 
     //Obstacles done
@@ -345,9 +358,13 @@ void draw ()
       glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
       draw3DTexturedObject(golds[i]->cube.getCuboidVAO());
 
-      if(LessThan(abs(player.x - golds[i]->x), 0.2) && LessThan(abs(player.y - golds[i]->y), 0.2))
-        cout<<"got coin"<<endl;
+      if(LessThan(abs(player.x - golds[i]->x), 0.25) && LessThan(abs(player.y - golds[i]->y), 0.25)){
+        player.score += 20;
+        gold.play();
+      }
     }
+
+    cout<<player.score<<" "<<player.lives<<endl;
 
     //Obstacles done
 
@@ -359,48 +376,122 @@ void draw ()
     //cout<<player.z<<endl;
 
   	glUseProgram (textureProgramID);
+
+    if(inits){
+      int tempx = -5,tempy = -6;
+      while(1){
+        player.handleKeyboard(tempx,tempy,0);
+        tempx --;tempy --;
+        if(Cuboids[player.getboxx()*10 + player.getboxy()]->active)
+          break;
+      }
+      player.score = 0;
+      player.lives = 3;
+      inits = false;
+    }
+
   	if(ups){
   		if(player.y + steplengths < player.ypos){
-        if(Meshes[player.getboxx()][player.getboxy()+1].zup <= player.z+0.25)        
+        if(!Cuboids[player.getboxx()*10 + player.getboxy()+1]->active){
+          player.handleKeyboard(0.0f,steplengths,0.0f);
+        }
+        else if(Meshes[player.getboxx()][player.getboxy()+1].zup <= player.z+0.25)        
   			   player.handleKeyboard(0.0f,steplengths,0.0f);
         else{
+          if(Cuboids[player.getboxx()*10 + player.getboxy()+1]->isYellow){
+            player.score-=10;
+            player.lives--;
+            fall.play();
+          }
           //cout<<Meshes[player.getboxx()][player.getboxy()].zup<<" "<<player.z<<endl;
           //cout<<"ups "<<Meshes[player.getboxx()][player.getboxy()+1].zup<<endl;
         }
   		}
+      else{
+        player.handleKeyboard(0.0f,steplengths,0.0f);
+        if(player.y > player.ypos){
+          cout<<"You fell over!"<<endl;
+          exit(0);
+        }
+      }
   		ups = false;
   	}
   	else if(downs){
   		if(player.y - steplengths > player.yneg){
-        if(Meshes[player.getboxx()][player.getboxy()-1].zup <= player.z+0.25)
+        if(!Cuboids[player.getboxx()*10 + player.getboxy()-1]->active){
+          player.handleKeyboard(0.0f,-steplengths,0.0f);
+        }
+        else if(Meshes[player.getboxx()][player.getboxy()-1].zup <= player.z+0.25)
   			   player.handleKeyboard(0.0f,-steplengths,0.0f);
         else{
+          if(Cuboids[player.getboxx()*10 + player.getboxy()-1]->isYellow){
+            player.score-=10;
+            player.lives--;
+            fall.play();
+          }
           //cout<<Meshes[player.getboxx()][player.getboxy()].zup<<" "<<player.z<<endl;
           //cout<<"downs "<<Meshes[player.getboxx()][player.getboxy()-1].zup<<endl;
         }
   		}
+      else{
+        player.handleKeyboard(0.0f,-steplengths,0.0f);
+        if(player.y < player.yneg){
+          cout<<"You fell over!"<<endl;
+          exit(0);
+        }
+      }
   		downs = false;
   	}
   	else if(lefts){
   		if(player.x - steplengths > player.xneg){
-        if(Meshes[player.getboxx()-1][player.getboxy()].zup <= player.z+0.25)
+        if(!Cuboids[(player.getboxx()-1)*10 + player.getboxy()]->active){
+          player.handleKeyboard(-steplengths,0.0f,0.0f);
+        }
+        else if(Meshes[player.getboxx()-1][player.getboxy()].zup <= player.z+0.25)
             player.handleKeyboard(-steplengths,0.0f,0.0f);
-          else{
-            //cout<<Meshes[player.getboxx()][player.getboxy()].zup<<" "<<player.z<<endl;
-            //cout<<"lefts "<<Meshes[player.getboxx()-1][player.getboxy()].zup<<endl;
+        else{
+          if(Cuboids[(player.getboxx()-1)*10 + player.getboxy()]->isYellow){
+            player.score-=10;
+            player.lives--;
+            fall.play();
           }
+          //cout<<Meshes[player.getboxx()][player.getboxy()].zup<<" "<<player.z<<endl;
+          //cout<<"lefts "<<Meshes[player.getboxx()-1][player.getboxy()].zup<<endl;
+        }
   		}
+      else{
+        player.handleKeyboard(-steplengths,0,0.0f);
+        if(player.x < player.xneg){
+          cout<<"You fell over!"<<endl;
+          exit(0);
+        }
+      }
   		lefts = false;
   	}
   	else if(rights){
   		if(player.x + steplengths < player.xpos){
-        if(Meshes[player.getboxx()+1][player.getboxy()].zup <= player.z+0.25)
+        if(!Cuboids[(player.getboxx()+1)*10 + player.getboxy()]->active){
+          player.handleKeyboard(steplengths,0.0f,0.0f);
+        }
+        else if(Meshes[player.getboxx()+1][player.getboxy()].zup <= player.z+0.25)
       			player.handleKeyboard(steplengths,0.0f,0.0f);
-          else{
-            //cout<<Meshes[player.getboxx()][player.getboxy()].zup<<" "<<player.z<<endl;
-            //cout<<"rights "<<Meshes[player.getboxx()+1][player.getboxy()].zup<<endl;
+        else{
+          if(Cuboids[(player.getboxx()+1)*10 + player.getboxy()]->isYellow){
+            player.score-=10;
+            player.lives--;
+            fall.play();
           }
+          //cout<<Meshes[player.getboxx()][player.getboxy()].zup<<" "<<player.z<<endl;
+          //cout<<"rights "<<Meshes[player.getboxx()+1][player.getboxy()].zup<<endl;
+        }
   		}
+      else{
+        player.handleKeyboard(steplengths,0,0.0f);
+        if(player.x > player.xpos){
+          cout<<"You fell over!"<<endl;
+          exit(0);
+        }
+      }
   		rights = false;
   	}
 
@@ -408,9 +499,24 @@ void draw ()
       player.handleJump();
     }
 
+    if(!Cuboids[player.getboxx()*10 + player.getboxy()]->isDanger)
+      isDangerSet = false;
+
+    if(Cuboids[player.getboxx()*10 + player.getboxy()]->isDanger && !isDangerSet){
+      player.score -= 10;
+      player.lives--;
+      isDangerSet = true;
+      fall.play();
+    }
+
+    if(!Cuboids[player.getboxx()*10 + player.getboxy()]->active){
+      cout<<"You fell into an abyss!"<<endl;
+      exit(0);
+    }
+
     player.rotate();
 
-    cout<<player.x<<" "<<player.y<<" "<<player.z<<endl;
+    //cout<<player.x<<" "<<player.y<<" "<<player.z<<endl;
 
     if(currentCamMode == 2){
       eyedefaultx = player.x;
@@ -461,6 +567,16 @@ void draw ()
 
     player.z -= Meshes[oldx][oldy].zup;
   	//Player done
+
+    if(Cuboids[player.getboxx()*10+player.getboxy()]->isGoal){
+      cout<<"Game Over :) Your score is "<<player.score<<endl;
+      exit(0);
+    }
+
+    if(player.lives == -1){
+      cout<<"Game Over :) Your score is "<<player.score<<endl;
+      exit(0);
+    }
 }
 
 /* Initialise glfw window, I/O callbacks and the renderer to use */
@@ -507,6 +623,9 @@ GLFWwindow* initGLFW (int width, int height)
 
     /* Register function to handle mouse click */
     glfwSetMouseButtonCallback(window, mouseButton);  // mouse button clicks
+    glfwSetScrollCallback(window, scrollButton);
+
+    glfwSetCursorPosCallback(window, cursorPosn); 
 
     return window;
 }
@@ -577,12 +696,27 @@ int main (int argc, char** argv)
 	int width = 1024;
 	int height = 768;
 
+  sf::SoundBuffer buffer1;
+  if(!buffer1.loadFromFile("../collision.wav"))
+      return -1;
+  collision.setBuffer(buffer1);
+
+  sf::SoundBuffer buffer2;
+  if(!buffer2.loadFromFile("../gold.wav"))
+      return -1;
+  gold.setBuffer(buffer2);
+
+  sf::SoundBuffer buffer3;
+  if(!buffer3.loadFromFile("../fall.wav"))
+      return -1;
+  fall.setBuffer(buffer3);
+
     GLFWwindow* window = initGLFW(width, height);
 
 	initGL (window, width, height);
 
     double last_update_time = glfwGetTime(), current_time;
-
+    glfwSetCursorPos(window, 512, 384);
     /* Draw in loop */
     while (!glfwWindowShouldClose(window)) {
 
@@ -602,6 +736,12 @@ int main (int argc, char** argv)
             // do something every 0.5 seconds ..
             //camera_rotation_angle+=5;
    
+            if(lifeminus)
+              lifeminus = false;
+
+            if(currentCamMode != 4)
+              glfwSetCursorPos(window, 512, 384);
+
             int temp;
             if(!Cuboids[temp=rand()%100]->getCollapse() && Cuboids[temp]->getUp() == 2){
             	Cuboids[temp]->setCollapse(true);

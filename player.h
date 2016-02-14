@@ -2,6 +2,8 @@
 
 class Player{
 	public:
+		int score;
+		int lives;
 		float xshift,yshift;
 		float x,y,z;
 		float xpos,xneg,ypos,yneg,zpos,zneg;
@@ -42,6 +44,8 @@ Player::Player(){
 	rotationang = 0;
 	rotToggle = true;
 	jumpAlt = 0;
+	score = 0;
+	lives = 3;
 }
 
 void Player::handleJump(){

@@ -38,6 +38,7 @@ GLuint textureID1,textureID2,textureID3,textureID4,textureID5,textureID6,texture
         textureID8,textureID9;//1water//2wall//3pant//4shirt//5skin//6flame//7gold//8danger//9goal
 
 int currentCamMode = 0; //0TowerView//1TopView//2AdventurerCam//3FollowCam//4HelicopterCam
+float helicamxoff,helicamyoff;
 //eye
 float eyedefaultx = 0,eyedefaulty = -20,eyedefaultz = 20;
 float eyex = 0,eyey = 0,eyez = 0;
@@ -421,6 +422,7 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
 
 
             case GLFW_KEY_0://towerview
+                glfwSetCursorPos(window, 512, 384);
                 currentCamMode = 0;
                 eyedefaultx = 0;
                 eyedefaulty = -20;
@@ -434,6 +436,7 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
                 targetx = 0,targety = 0, targetz = 0;
                 break;
             case GLFW_KEY_1://topview
+                glfwSetCursorPos(window, 512, 384);
                 currentCamMode = 1;
                 eyedefaultx = 0;
                 eyedefaulty = 0;
@@ -447,6 +450,7 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
                 targetx = 0,targety = 0, targetz = 0;
             	break;
             case GLFW_KEY_2://adventurercam
+                glfwSetCursorPos(window, 512, 384);
                 currentCamMode = 2;
                 eyedefaultx = 0;
                 eyedefaulty = -20;
@@ -460,6 +464,7 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
                 targetx = 0,targety = 0, targetz = 0;
                 break;
             case GLFW_KEY_3://followcam
+                glfwSetCursorPos(window, 512, 384);
                 currentCamMode = 3;
                 eyedefaultx = 0;
                 eyedefaulty = -20;
@@ -472,6 +477,24 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
                 eyex = 0,eyey = 0,eyez = 0;
                 targetx = 0,targety = 0, targetz = 0;
                 break;
+            case GLFW_KEY_4://helicoptercam
+                currentCamMode = 4;
+                glfwSetCursorPos(window, 512, 384);
+                
+                helicamxoff = 0,helicamyoff = 0;
+
+                eyedefaultx = 0;
+                eyedefaulty = 0;
+                eyedefaultz = 30;
+
+                targetdefaultx = 0;
+                targetdefaulty = 0;
+                targetdefaultz = 0;
+
+                eyex = 0,eyey = 0,eyez = 0;
+                targetx = 0,targety = 0, targetz = 0;
+                break;
+
 
             case GLFW_KEY_F:
                 if(steplengths + 0.05 <= 0.3)
@@ -604,24 +627,68 @@ void keyboardChar (GLFWwindow* window, unsigned int key)
 	}
 }
 
+bool isPressedLeft = false;
+bool isPressedRight = false;
+
 /* Executed when a mouse button is pressed/released */
 void mouseButton (GLFWwindow* window, int button, int action, int mods)
 {
     switch (button) {
         case GLFW_MOUSE_BUTTON_LEFT:
-            if (action == GLFW_RELEASE)
-                triangle_rot_dir *= -1;
+            if(action == GLFW_PRESS)
+                isPressedLeft = true;
+            if(action == GLFW_RELEASE)
+                isPressedLeft = false;
             break;
         case GLFW_MOUSE_BUTTON_RIGHT:
-            if (action == GLFW_RELEASE) {
-                rectangle_rot_dir *= -1;
-            }
+            if(action == GLFW_PRESS)
+                isPressedRight = true;
+            if(action == GLFW_RELEASE)
+                isPressedRight = false;
             break;
         default:
             break;
     }
 }
 
+void scrollButton (GLFWwindow* window, double xoffset, double yoffset)
+{
+    if(currentCamMode == 4){
+        eyez-=yoffset;
+    }
+}
+
+void cursorPosn(GLFWwindow* window, double xcur, double ycur){
+    //cout<<xoffset<<" cursor "<<yoffset<<endl;
+    if(currentCamMode == 4){
+        helicamxoff = xcur - 512;
+        helicamyoff = 384 - ycur;
+
+        if(isPressedLeft){
+            targetx += (helicamxoff/300);
+            targety += (helicamyoff/300);
+        }
+        if(isPressedRight){
+            eyex += (helicamxoff/400);
+            eyey += (helicamyoff/400);
+        }
+    }
+    else{
+        helicamxoff = xcur - 512;
+        helicamyoff = 384 - ycur;
+
+        if(helicamxoff>100)
+            rights = true;
+        else if(helicamxoff<-100)
+            lefts = true;
+
+        if(helicamyoff>100)
+            ups = true;
+        else if(helicamyoff<-100)
+            downs = true;
+    }
+
+}
 
 /* Executed when window is resized to 'width' and 'height' */
 /* Modify the bounds of the screen here in glm::ortho or Field of View in glm::Perspective */

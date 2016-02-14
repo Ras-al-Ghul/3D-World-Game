@@ -19,6 +19,7 @@ class Cuboid{
 		int x,y;
 		bool isGoal;
 		bool isDanger;
+		bool isYellow;
 		Cuboid();
 		GLfloat* getVertexBuffer();
 		GLfloat* getColorBuffer();
@@ -91,6 +92,7 @@ Cuboid::Cuboid(){
 	active = true;
 	isGoal = false;
 	isDanger = false;
+	isYellow = false;
 }
 
 void Cuboid::setDepth(float val){
@@ -288,6 +290,7 @@ class Obstacle{
 		float xshift,yshift;
 		float x,y,z;
 		float xpos,xneg,ypos,yneg,zpos,zneg;
+		float steps;
 		Cuboid cube;
 		bool isGold;
 		int initDir;//0:xpos,1:ypos,2:xneg,3:yneg
@@ -327,25 +330,25 @@ void Obstacle::updatePosn(){
 	switch(initDir){
 		case 0:
 			if(x+0.1<xpos)
-				handleTranslations(0.1,0,0);
+				handleTranslations(steps,0,0);
 			else
 				initDir = rand()%4;
 			break;
 		case 1:
 			if(y+0.1<ypos)
-				handleTranslations(0,0.1,0);
+				handleTranslations(0,steps,0);
 			else
 				initDir = rand()%4;
 			break;
 		case 2:
 			if(x-0.1>xneg)
-				handleTranslations(-0.1,0,0);
+				handleTranslations(-steps,0,0);
 			else
 				initDir = rand()%4;
 			break;
 		case 3:
 			if(y-0.1>yneg)
-				handleTranslations(0,-0.1,0);
+				handleTranslations(0,-steps,0);
 			else
 				initDir = rand()%4;
 			break;
@@ -372,10 +375,14 @@ glm::mat4 Obstacle::handleObstacle(){
 
 void Obstacle::makeObstacle(float xx,float yy,float zz){
 	cube.setFillMode(GL_FILL);
-	if(isGold)
+	if(isGold){
 		cube.callCreate3DTexturedObject(textureID7);
-	else
+		steps = 0.05;
+	}
+	else{
 		cube.callCreate3DTexturedObject(textureID4);
+		steps = 0.1;
+	}
 	cube.scaleCuboid(0.2,0.2,0.5);
 	handleTranslations(xx,yy,zz);
 
