@@ -16,6 +16,9 @@
 class Cuboid{
 	public:
 		bool active;
+		int x,y;
+		bool isGoal;
+		bool isDanger;
 		Cuboid();
 		GLfloat* getVertexBuffer();
 		GLfloat* getColorBuffer();
@@ -86,6 +89,8 @@ Cuboid::Cuboid(){
 	up = 2;
 	currentDepth = 0.0f;
 	active = true;
+	isGoal = false;
+	isDanger = false;
 }
 
 void Cuboid::setDepth(float val){
@@ -275,5 +280,156 @@ VAO* Cuboid::getCuboidVAO(){
 }
 
 Cuboid::~Cuboid(){
+
+}
+
+class Obstacle{
+	public:
+		float xshift,yshift;
+		float x,y,z;
+		float xpos,xneg,ypos,yneg,zpos,zneg;
+		Cuboid cube;
+		bool isGold;
+		int initDir;//0:xpos,1:ypos,2:xneg,3:yneg
+		Obstacle(bool val);
+		void updatePosn();
+		int getboxx();//betw 0 to 9
+		int getboxy();//betw 0 to 9
+		void setpos();
+		void handleTranslations(float xx,float yy,float zz);
+		void makeObstacle(float xx,float yy,float zz);
+		glm::mat4 handleObstacle();
+		~Obstacle();
+	protected:
+	private:
+};
+
+Obstacle::Obstacle(bool val){
+	xshift = 0;
+	yshift = 0;
+	x = 0;
+	y = 0;
+	z = 0;
+	xpos = 8.75;
+	xneg = -10.75;
+	ypos = 8.75;
+	yneg = -10.75;
+	initDir = rand()%4;
+	isGold = val;
+}
+
+void Obstacle::setpos(){
+	x = -(xshift);
+	y = -(yshift);
+}
+
+void Obstacle::updatePosn(){
+	switch(initDir){
+		case 0:
+			if(x+0.1<xpos)
+				handleTranslations(0.1,0,0);
+			else
+				initDir = rand()%4;
+			break;
+		case 1:
+			if(y+0.1<ypos)
+				handleTranslations(0,0.1,0);
+			else
+				initDir = rand()%4;
+			break;
+		case 2:
+			if(x-0.1>xneg)
+				handleTranslations(-0.1,0,0);
+			else
+				initDir = rand()%4;
+			break;
+		case 3:
+			if(y-0.1>yneg)
+				handleTranslations(0,-0.1,0);
+			else
+				initDir = rand()%4;
+			break;
+	}
+}
+
+void Obstacle::handleTranslations(float xx,float yy,float zz){
+	cube.translateCuboid(xx,yy,zz);
+	x+=xx;
+	y+=yy;
+	z+=zz;
+}
+
+
+glm::mat4 Obstacle::handleObstacle(){
+	if((rand() % 25) == 0)
+		initDir = rand()%4;
+	updatePosn();
+	cube.setModelMatrixIdentity();
+	cube.transformCuboidAndSetModel();
+  	cube.setMVPMatrix();
+  	return cube.getMVPMatrix();
+}
+
+void Obstacle::makeObstacle(float xx,float yy,float zz){
+	cube.setFillMode(GL_FILL);
+	if(isGold)
+		cube.callCreate3DTexturedObject(textureID7);
+	else
+		cube.callCreate3DTexturedObject(textureID4);
+	cube.scaleCuboid(0.2,0.2,0.5);
+	handleTranslations(xx,yy,zz);
+
+	xshift = -2;
+	yshift = -2;
+	setpos();
+}
+
+int Obstacle::getboxx(){
+	if(x>=-11 && x<=-9)
+		return 0;
+	else if(x>-9 && x<=-7)
+		return 1;
+	else if(x>-7 && x<=-5)
+		return 2;
+	else if(x>-5 && x<=-3)
+		return 3;
+	else if(x>-3 && x<=-1)
+		return 4;
+	else if(x>-1 && x<=1)
+		return 5;
+	else if(x>1 && x<=3)
+		return 6;
+	else if(x>3 && x<=5)
+		return 7;
+	else if(x>5 && x<=7)
+		return 8;
+	else if(x>7 && x<=9)
+		return 9;
+}
+
+int Obstacle::getboxy(){
+	if(y>=-11 && y<=-9)
+		return 0;
+	else if(y>-9 && y<=-7)
+		return 1;
+	else if(y>-7 && y<=-5)
+		return 2;
+	else if(y>-5 && y<=-3)
+		return 3;
+	else if(y>-3 && y<=-1)
+		return 4;
+	else if(y>-1 && y<=1)
+		return 5;
+	else if(y>1 && y<=3)
+		return 6;
+	else if(y>3 && y<=5)
+		return 7;
+	else if(y>5 && y<=7)
+		return 8;
+	else if(y>7 && y<=9)
+		return 9;
+}
+
+Obstacle::~Obstacle(){
 
 }

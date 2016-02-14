@@ -10,6 +10,11 @@ Cuboid* curCuboid;
 Cuboid base;
 Player player;
 
+vector<Obstacle*> obstacles;
+Obstacle* curObstacle;
+
+vector<Obstacle*> golds;
+
 struct Mesh{
 	float xpos,xneg;
 	float ypos,yneg;
@@ -26,6 +31,28 @@ void makeBase(){
 	base.translateCuboid(0.0f,0.0f,-1.0f);
 }
 
+void makeObstacles(){
+  int p = 0;
+  for(int i=0;i<(rand()%2+2);i++){
+    curObstacle = new Obstacle(false);
+    obstacles.push_back(curObstacle);
+
+    obstacles[p]->makeObstacle(2,2,3.5);
+    p++;
+  }
+}
+
+void makeGolds(){
+  int p = 0;
+  for(int i=0;i<(rand()%2+2);i++){
+    curObstacle = new Obstacle(true);
+    golds.push_back(curObstacle);
+
+    golds[p]->makeObstacle(2,2,3.5);
+    p++;
+  }
+}
+
 void makeHundredCuboids(){
 	unsigned int p=0;
 	unsigned int xs = 0,ys = 0;
@@ -33,19 +60,28 @@ void makeHundredCuboids(){
 		for(int j = -10; j < 10; j+=2){
 			  curCuboid = new Cuboid();
 			  Cuboids.push_back(curCuboid);
-			  if(rand()%3 == 1){
+
+        if(i == 0 && j == 0)
+          Cuboids[p]->isGoal = true;
+
+			  if(rand()%3 == 1 && !Cuboids[p]->isGoal){
 			  	Cuboids[p]->active = false;
 			  }
 			  Cuboids[p]->setFillMode(GL_FILL);
 			  //Cuboids[0]->callCreate3DObject();
-			  Cuboids[p]->callCreate3DTexturedObject(textureID2);
-			  
+
+        if(!Cuboids[p]->isGoal)
+          Cuboids[p]->callCreate3DTexturedObject(textureID2);
+        else
+          Cuboids[p]->callCreate3DTexturedObject(textureID9);
 			  
 			  //call in correct order
 			  Cuboids[p]->scaleCuboid(1,1,1);
 			  //Cuboids[0]->rotateCuboid(90.f,0.0f,0.0f,1.0f);
 			  Cuboids[p]->translateCuboid(float(i),float(j),2.0f);
 			  //Repeatedly call the above for a set of transformations
+        Cuboids[p]->x = i;
+        Cuboids[p]->y = j;
 
 			  
 			  Meshes[xs][ys].xneg = i-1;
@@ -99,12 +135,60 @@ void draw ()
   	if(Cuboids[k]->active == false)
   		continue;
   	if(Cuboids[k]->getCollapse() && !Cuboids[k]->getRestore() && Cuboids[k]->getUp() == 1){
+
+
+          curCuboid = Cuboids[k];
+          int tempx = curCuboid->x, tempy = curCuboid->y;
+          delete curCuboid;
+
+          curCuboid = new Cuboid();
+          Cuboids[k] = curCuboid;
+
+          Cuboids[k]->isDanger = true;
+          Cuboids[k]->active = true;
+
+          Cuboids[k]->setFillMode(GL_FILL);
+          //Cuboids[0]->callCreate3DObject();
+          Cuboids[k]->callCreate3DTexturedObject(textureID8);
+          //call in correct order
+          Cuboids[k]->scaleCuboid(1,1,1);
+          //Cuboids[0]->rotateCuboid(90.f,0.0f,0.0f,1.0f);
+          Cuboids[k]->translateCuboid(tempx,tempy,2);
+          Cuboids[k]->x = tempx;Cuboids[k]->y = tempy;
+          Cuboids[k]->setUp(1);
+          Cuboids[k]->setCollapse(true);
+          Cuboids[k]->isDanger = true;
+
       Cuboids[k]->translateCuboid(0.0f,0.0f,-1.0f);
   		Meshes[int(k/10)][int(k%10)].zup -= (/*2**/1);
   		Cuboids[k]->setRestore(true);
   		Cuboids[k]->setDepth(-1);
   	}
   	else if(Cuboids[k]->getCollapse() && !Cuboids[k]->getRestore() && Cuboids[k]->getUp() == 0){
+
+        if(rand()%2){
+          curCuboid = Cuboids[k];
+          int tempx = curCuboid->x, tempy = curCuboid->y;
+          delete curCuboid;
+
+          curCuboid = new Cuboid();
+          Cuboids[k] = curCuboid;
+
+          Cuboids[k]->isDanger = true;
+          Cuboids[k]->active = true;
+
+          Cuboids[k]->setFillMode(GL_FILL);
+          //Cuboids[0]->callCreate3DObject();
+          Cuboids[k]->callCreate3DTexturedObject(textureID6);
+          //call in correct order
+          Cuboids[k]->scaleCuboid(1,1,1);
+          //Cuboids[0]->rotateCuboid(90.f,0.0f,0.0f,1.0f);
+          Cuboids[k]->translateCuboid(tempx,tempy,2);
+          Cuboids[k]->x = tempx;Cuboids[k]->y = tempy;
+          Cuboids[k]->setUp(0);
+          Cuboids[k]->setCollapse(true);
+        }
+
   		Cuboids[k]->translateCuboid(0.0f,0.0f,1.0f);
   		Meshes[int(k/10)][int(k%10)].zup += (/*2**/1);
   		Cuboids[k]->setRestore(true);
@@ -117,10 +201,44 @@ void draw ()
 
   	if(Cuboids[k]->getRestore() && Cuboids[k]->getUp() == 1){
   		if(Cuboids[k]->getInc() != 1000){
+
   			Cuboids[k]->translateCuboid(0.0f,0.0f,0.001f);
   			Meshes[int(k/10)][int(k%10)].zup += (/*2**/0.001);
   			Cuboids[k]->setInc(Cuboids[k]->getInc()+1);
   			Cuboids[k]->setDepth(Cuboids[k]->getDepth()+0.001f);
+
+        int tempdepth = Cuboids[k]->getDepth(),tempInc = Cuboids[k]->getInc();
+
+        
+        if(Cuboids[k]->isDanger && Cuboids[k]->getInc() == 500){
+          curCuboid = Cuboids[k];
+          int tempx = curCuboid->x, tempy = curCuboid->y;
+          delete curCuboid;
+
+          curCuboid = new Cuboid();
+          Cuboids[k] = curCuboid;
+
+          Cuboids[k]->active = true;
+
+          Cuboids[k]->setDepth(tempdepth);
+          Cuboids[k]->setInc(tempInc);
+
+          Cuboids[k]->setFillMode(GL_FILL);
+          //Cuboids[0]->callCreate3DObject();
+          Cuboids[k]->callCreate3DTexturedObject(textureID2);
+          //call in correct order
+          Cuboids[k]->scaleCuboid(1,1,1);
+          //Cuboids[0]->rotateCuboid(90.f,0.0f,0.0f,1.0f);
+
+          Cuboids[k]->translateCuboid(tempx,tempy,1.5);
+          Cuboids[k]->x = tempx;
+          Cuboids[k]->y = tempy;
+          Cuboids[k]->setUp(1);
+          Cuboids[k]->setRestore(true);
+          Cuboids[k]->setCollapse(true);
+        }
+        
+
   		}
   		else{
   			Cuboids[k]->setCollapse(false);
@@ -137,6 +255,29 @@ void draw ()
   			Cuboids[k]->setDepth(Cuboids[k]->getDepth()-0.001f);
   		}
   		else{
+        
+        if(Cuboids[k]->isDanger){
+          curCuboid = Cuboids[k];
+          int tempx = curCuboid->x, tempy = curCuboid->y;
+          delete curCuboid;
+
+          curCuboid = new Cuboid();
+          Cuboids[k] = curCuboid;
+
+          Cuboids[k]->active = true;
+
+          Cuboids[k]->setFillMode(GL_FILL);
+          //Cuboids[0]->callCreate3DObject();
+          Cuboids[k]->callCreate3DTexturedObject(textureID2);
+          //call in correct order
+          Cuboids[k]->scaleCuboid(1,1,1);
+          //Cuboids[0]->rotateCuboid(90.f,0.0f,0.0f,1.0f);
+          Cuboids[k]->translateCuboid(tempx,tempy,2);
+          Cuboids[k]->x = tempx;
+          Cuboids[k]->y = tempy;
+          Cuboids[k]->setUp(0);
+        }
+        
   			Cuboids[k]->setCollapse(false);
   			Cuboids[k]->setRestore(false);
   			Cuboids[k]->setInc(0);
@@ -156,9 +297,9 @@ void draw ()
   }
   
     /*
-    for(int i=0;i<10;i++){
+    for(int i=9;i>-1;i--){
       for(int j=0;j<10;j++){
-        cout<<Meshes[i][j].zup<<" ";
+        cout<<Meshes[j][i].zup<<" ";
       }
       cout<<endl;
     }
@@ -179,54 +320,80 @@ void draw ()
 
   	draw3DTexturedObject(base.getCuboidVAO());
 
+    //Obstacles
+
+    for(unsigned int i=0; i<obstacles.size(); i++){
+      MVP = obstacles[i]->handleObstacle();
+      glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
+      draw3DTexturedObject(obstacles[i]->cube.getCuboidVAO());
+
+      if(LessThan(abs(player.x - obstacles[i]->x), 0.2) && LessThan(abs(player.y - obstacles[i]->y), 0.2))
+        cout<<"dead"<<endl;
+    }
+
+    //Obstacles done
+
+    //Obstacles
+
+    for(unsigned int i=0; i<golds.size(); i++){
+      MVP = golds[i]->handleObstacle();
+      glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
+      draw3DTexturedObject(golds[i]->cube.getCuboidVAO());
+
+      if(LessThan(abs(player.x - golds[i]->x), 0.2) && LessThan(abs(player.y - golds[i]->y), 0.2))
+        cout<<"got coin"<<endl;
+    }
+
+    //Obstacles done
+
   	//Player
 
     player.z += Meshes[player.getboxx()][player.getboxy()].zup;
     int oldx = player.getboxx(), oldy = player.getboxy();
 
-    cout<<player.z<<endl;
+    //cout<<player.z<<endl;
 
   	glUseProgram (textureProgramID);
   	if(ups){
-  		if(player.y + 0.25 < player.ypos){
+  		if(player.y + steplengths < player.ypos){
         if(Meshes[player.getboxx()][player.getboxy()+1].zup <= player.z+0.25)        
-  			   player.handleKeyboard(0.0f,0.25f,0.0f);
+  			   player.handleKeyboard(0.0f,steplengths,0.0f);
         else{
-          cout<<Meshes[player.getboxx()][player.getboxy()].zup<<" "<<player.z<<endl;
-          cout<<"ups "<<Meshes[player.getboxx()][player.getboxy()+1].zup<<endl;
+          //cout<<Meshes[player.getboxx()][player.getboxy()].zup<<" "<<player.z<<endl;
+          //cout<<"ups "<<Meshes[player.getboxx()][player.getboxy()+1].zup<<endl;
         }
   		}
   		ups = false;
   	}
   	else if(downs){
-  		if(player.y - 0.25 > player.yneg){
+  		if(player.y - steplengths > player.yneg){
         if(Meshes[player.getboxx()][player.getboxy()-1].zup <= player.z+0.25)
-  			   player.handleKeyboard(0.0f,-0.25f,0.0f);
+  			   player.handleKeyboard(0.0f,-steplengths,0.0f);
         else{
-          cout<<Meshes[player.getboxx()][player.getboxy()].zup<<" "<<player.z<<endl;
-          cout<<"downs "<<Meshes[player.getboxx()][player.getboxy()-1].zup<<endl;
+          //cout<<Meshes[player.getboxx()][player.getboxy()].zup<<" "<<player.z<<endl;
+          //cout<<"downs "<<Meshes[player.getboxx()][player.getboxy()-1].zup<<endl;
         }
   		}
   		downs = false;
   	}
   	else if(lefts){
-  		if(player.x - 0.25 > player.xneg){
+  		if(player.x - steplengths > player.xneg){
         if(Meshes[player.getboxx()-1][player.getboxy()].zup <= player.z+0.25)
-            player.handleKeyboard(-0.25f,0.0f,0.0f);
+            player.handleKeyboard(-steplengths,0.0f,0.0f);
           else{
-            cout<<Meshes[player.getboxx()][player.getboxy()].zup<<" "<<player.z<<endl;
-            cout<<"lefts "<<Meshes[player.getboxx()-1][player.getboxy()].zup<<endl;
+            //cout<<Meshes[player.getboxx()][player.getboxy()].zup<<" "<<player.z<<endl;
+            //cout<<"lefts "<<Meshes[player.getboxx()-1][player.getboxy()].zup<<endl;
           }
   		}
   		lefts = false;
   	}
   	else if(rights){
-  		if(player.x + 0.25 < player.xpos){
+  		if(player.x + steplengths < player.xpos){
         if(Meshes[player.getboxx()+1][player.getboxy()].zup <= player.z+0.25)
-      			player.handleKeyboard(0.25f,0.0f,0.0f);
+      			player.handleKeyboard(steplengths,0.0f,0.0f);
           else{
-            cout<<Meshes[player.getboxx()][player.getboxy()].zup<<" "<<player.z<<endl;
-            cout<<"rights "<<Meshes[player.getboxx()+1][player.getboxy()].zup<<endl;
+            //cout<<Meshes[player.getboxx()][player.getboxy()].zup<<" "<<player.z<<endl;
+            //cout<<"rights "<<Meshes[player.getboxx()+1][player.getboxy()].zup<<endl;
           }
   		}
   		rights = false;
@@ -235,8 +402,6 @@ void draw ()
     if(jump){
       player.handleJump();
     }
-
-
 
     player.rotate();
 
@@ -324,8 +489,13 @@ void initGL (GLFWwindow* window, int width, int height)
 	textureID3 = createTexture("pant.png");
   textureID4 = createTexture("shirt.png");  
   textureID5 = createTexture("skin.png");
+  textureID6 = createTexture("flame.png");
+  textureID7 = createTexture("gold.png");
+  textureID8 = createTexture("danger.png");
+  textureID9 = createTexture("goal.png");
 
-	if(textureID1 == 0 || textureID2 == 0 || textureID3 == 0 || textureID4 == 0 || textureID5 == 0 )
+	if(textureID1 == 0 || textureID2 == 0 || textureID3 == 0 || textureID4 == 0 || textureID5 == 0 || textureID6 == 0
+   || textureID7 == 0 || textureID8 == 0 || textureID9 == 0)
 		cout << "SOIL loading error: '" << SOIL_last_result() << "'" << endl;
 
 	// Create and compile our GLSL program from the texture shaders
@@ -341,6 +511,9 @@ void initGL (GLFWwindow* window, int width, int height)
 	makeBase();
 	makeHundredCuboids();
 	player.makePlayer();
+
+  makeObstacles();
+  makeGolds();
 
 	// Create and compile our GLSL program from the shaders
 	programID = LoadShaders( "Sample_GL.vert", "Sample_GL.frag" );

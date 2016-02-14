@@ -19,15 +19,9 @@
 
 using namespace std;
 
-
 bool AEqual(float a, float b)
 {
     return fabs(a - b) <= ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * EPSILON);
-}
-
-bool EEqual(float a, float b)
-{
-    return fabs(a - b) <= ( (fabs(a) > fabs(b) ? fabs(b) : fabs(a)) * EPSILON);
 }
 
 bool GreaterThan(float a, float b)
@@ -40,7 +34,11 @@ bool LessThan(float a, float b)
     return (b - a) > ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * EPSILON);
 }
 
-GLuint textureID1,textureID2,textureID3,textureID4,textureID5;//1water//2wall//3pant//4shirt//5skin
+GLuint textureID1,textureID2,textureID3,textureID4,textureID5,textureID6,textureID7,
+        textureID8,textureID9;//1water//2wall//3pant//4shirt//5skin//6flame//7gold//8danger//9goal
+
+int currentCamMode = 0; //0TowerView//1TopView//2AdventurerCam//3FollowCam//4HelicopterCam
+float steplengths = 0.20;//steplengths will be 0.20,0.25,0.30
 
 bool isMoving = false;
 bool jump = false;
@@ -401,12 +399,20 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
             	topviewcamval = 0;
             	towerview = 0;
             	break;
-            case GLFW_KEY_S:
+            case GLFW_KEY_W:
             	topviewcamlateral = 0;
             	topviewcamupdown = 0;
             	topviewcamval = 0;
             	towerview = -20;
             	break;
+            case GLFW_KEY_F:
+                if(steplengths + 0.05 <= 0.3)
+                    steplengths += 0.05;
+                break;
+            case GLFW_KEY_S:
+                if(steplengths - 0.05 >= 0.2)
+                    steplengths -= 0.05;
+                break;
             case GLFW_KEY_UP:
                 ups = true;
                 isMoving = false;
