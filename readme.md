@@ -1,4 +1,4 @@
-#2D-Shooter-Game
+# 2D-Shooter-Game
 
 This game uses **OpenGl3** and **GLFW**.
 The following libraries may need to be installed.
@@ -51,7 +51,7 @@ For the audio, **SFML** library is used. Install using:
 
 `sudo apt-get install libsfml-dev`
 
-####Keyboard Controls
+#### Keyboard Controls
 
 The keyboard controls for the game are:
 
@@ -81,7 +81,7 @@ The keyboard controls for the game are:
 	b     - Decrease TargetZ  
 	q/Esc - Quit
 
-####Mouse Controls
+#### Mouse Controls
 
 The mouse controls for the game are:
 
@@ -92,12 +92,12 @@ The mouse controls for the game are:
 
 The keyboard will still need to be used for some functionality.
 
-####Starting the game
+#### Starting the game
 
 - `make`
 - `./3DObstacle`
 
-####Playing the game
+#### Playing the game
 
 Enter your name.
 
