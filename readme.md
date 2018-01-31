@@ -1,4 +1,4 @@
-# 2D-Shooter-Game
+# 3D-World-Game
 
 This game uses **OpenGl3** and **GLFW**.
 The following libraries may need to be installed.
